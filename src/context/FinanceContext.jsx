@@ -287,7 +287,6 @@ export const FinanceProvider = ({ children }) => {
           amount,
           date: newTx.date,
           category: newTx.category,
-          notes: newTx.notes,
         });
         const created = data.transaction || data;
         setTransactions((prev) => [mapTransaction(created), ...prev]);
