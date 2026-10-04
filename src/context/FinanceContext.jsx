@@ -28,6 +28,7 @@ function mapAccount(a) {
     color: '#8B5CF6',
     plaidAccountId: a.plaidAccountId,
     mask: a.mask,
+    itemId: a.itemId,
   };
 }
 
@@ -364,17 +365,40 @@ export const FinanceProvider = ({ children }) => {
   }, []);
 
   // ─── Accounts ──────────────────────────────────────────────────
-  const addAccount = useCallback((newAcc) => {
-    setAccounts((prev) => [
-      ...prev,
-      {
-        id: `local_${Date.now()}`,
-        ...newAcc,
+  // Persists a manually-tracked account on the backend (POST /api/accounts/manual).
+  // Throws on failure — the modal surfaces the error message.
+  const addAccount = useCallback(async (newAcc) => {
+    try {
+      const mask = (newAcc.accountNumber || '')
+        .toString()
+        .replace(/\D/g, '')
+        .slice(-4);
+      const data = await api.accounts.createManual({
+        name: newAcc.name,
+        institution: newAcc.institution,
+        type: newAcc.type,
         balance: Number(newAcc.balance) || 0,
-        status: 'Connected',
-        lastSync: 'Just now',
-      },
-    ]);
+        ...(mask ? { mask } : {}),
+      });
+      const created = mapAccount(data.account || data);
+      setAccounts((prev) => [...prev, created]);
+      return created;
+    } catch (err) {
+      console.error('addAccount failed', err);
+      throw err;
+    }
+  }, []);
+
+  // Deletes a manual account (and its transactions). Only for itemId ===
+  // 'manual' — Plaid-linked accounts must be disconnected via unlinkItem.
+  const removeAccount = useCallback(async (id) => {
+    try {
+      await api.accounts.deleteManual(id);
+      setAccounts((prev) => prev.filter((a) => a.id !== id && a._id !== id));
+    } catch (err) {
+      console.error('removeAccount failed', err);
+      throw err;
+    }
   }, []);
 
   const refreshAccounts = useCallback(async () => {
@@ -484,6 +508,7 @@ export const FinanceProvider = ({ children }) => {
         deleteBudget,
         accounts,
         addAccount,
+        removeAccount,
         refreshAccounts,
         summary,
         categorySpending,

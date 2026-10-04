@@ -16,6 +16,7 @@ export const AddAccountModal = ({ isOpen, onClose }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const accountTypes = ['Checking', 'Savings', 'Credit Card', 'Investment', 'Cash Wallet'];
@@ -36,7 +37,7 @@ export const AddAccountModal = ({ isOpen, onClose }) => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -45,15 +46,15 @@ export const AddAccountModal = ({ isOpen, onClose }) => {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      addAccount({
-        ...formData,
-        accountNumber: formData.accountNumber
-          ? `•••• ${formData.accountNumber.slice(-4)}`
-          : `•••• ${Math.floor(1000 + Math.random() * 9000)}`,
-        availableBalance: Number(formData.balance)
+    setSubmitError('');
+    try {
+      await addAccount({
+        name: formData.name.trim(),
+        institution: formData.institution.trim(),
+        type: formData.type,
+        balance: Number(formData.balance),
+        accountNumber: formData.accountNumber,
       });
-      setLoading(false);
       onClose();
       setFormData({
         name: '',
@@ -62,7 +63,11 @@ export const AddAccountModal = ({ isOpen, onClose }) => {
         balance: '',
         accountNumber: '',
       });
-    }, 300);
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to add account. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -73,6 +78,12 @@ export const AddAccountModal = ({ isOpen, onClose }) => {
       subtitle="Manually track a bank account, credit card, or wallet"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {submitError && (
+          <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+            {submitError}
+          </div>
+        )}
+
         <Input
           label="Account Name"
           name="name"

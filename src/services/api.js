@@ -97,10 +97,35 @@ export const auth = {
   },
 };
 
+// ─── User profile / account settings ─────────────────────────────
+// Backed by PUT/DELETE /api/auth/me* on the backend.
+export const user = {
+  async updateProfile({ name }) {
+    return request('/auth/me', { method: 'PUT', body: { name } });
+  },
+
+  async changePassword({ currentPassword, newPassword }) {
+    return request('/auth/me/password', {
+      method: 'PUT',
+      body: { currentPassword, newPassword },
+    });
+  },
+
+  // Permanent — requires the current password as confirmation.
+  async deleteAccount(password) {
+    return request('/auth/me', { method: 'DELETE', body: { password } });
+  },
+};
+
 // ─── Plaid ───────────────────────────────────────────────────────
 export const plaid = {
-  async createLinkToken() {
-    return request('/plaid/create-link-token', { method: 'POST' });
+  // Pass an existing itemId to enter Plaid Link "update" mode (reconnect a
+  // bank that failed with ITEM_LOGIN_REQUIRED) instead of linking a new one.
+  async createLinkToken(itemId) {
+    return request('/plaid/create-link-token', {
+      method: 'POST',
+      body: itemId ? { itemId } : {},
+    });
   },
 
   async exchangePublicToken(publicToken) {
@@ -114,27 +139,44 @@ export const plaid = {
     return request('/plaid/accounts');
   },
 
-  async syncTransactions() {
-    return request('/plaid/sync-transactions', { method: 'POST' });
+  async syncTransactions(days) {
+    return request('/plaid/sync-transactions', {
+      method: 'POST',
+      body: days ? { days } : {},
+    });
   },
 
   async refreshBalances() {
     return request('/plaid/refresh-balances', { method: 'POST' });
+  },
+
+  // Disconnect one linked bank (removes it at Plaid, then deletes its
+  // accounts and transactions locally). Irreversible — confirm with the user first.
+  async unlinkItem(itemId) {
+    return request(`/plaid/items/${itemId}`, { method: 'DELETE' });
   },
 };
 
 // ─── Accounts ────────────────────────────────────────────────────
 export const accounts = {
   getAccounts: () => plaid.getAccounts(),
-  createPlaidLinkToken: () => plaid.createLinkToken(),
+  createPlaidLinkToken: (itemId) => plaid.createLinkToken(itemId),
   exchangePlaidPublicToken: (publicToken) =>
     plaid.exchangePublicToken(publicToken),
 
+  // Manually-tracked account (cash wallet, unsupported bank, ...).
+  // body: { name, type, institution?, balance?, mask?, currency? }
   async createManual(body) {
     return request('/accounts/manual', {
       method: 'POST',
       body,
     });
+  },
+
+  // Only works on manual accounts — the backend rejects Plaid-linked ones
+  // (those must be disconnected via plaid.unlinkItem).
+  async deleteManual(id) {
+    return request(`/accounts/${id}`, { method: 'DELETE' });
   },
 };
 
@@ -210,6 +252,7 @@ export async function health() {
 // ─── Default export (all modules) ────────────────────────────────
 const api = {
   auth,
+  user,
   plaid,
   accounts,
   transactions,
