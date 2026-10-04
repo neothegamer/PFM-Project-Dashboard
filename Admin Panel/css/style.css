@@ -1,0 +1,729 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+} 
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f7f7fb;
+    color: #555;
+}
+
+.dashboard {
+    display: flex;
+    min-height: 100vh;
+}
+
+
+/* ================= SIDEBAR ================= */
+
+.sidebar {
+    width: 245px;
+    background: white;
+    border-right: 1px solid #eee;
+    padding: 20px 12px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    overflow-y: auto;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: bold;
+    color: #6254e7;
+    padding: 0 12px 25px;
+}
+
+.logo span {
+    font-size: 25px;
+}
+
+.menu-title {
+    font-size: 10px;
+    color: #aaa;
+    margin: 20px 12px 8px;
+}
+
+.menu {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    text-decoration: none;
+    color: #666;
+    padding: 10px 13px;
+    border-radius: 6px;
+    margin: 3px 0;
+    font-size: 13px;
+}
+
+.menu:hover {
+    background: #f1efff;
+    color: #6655e8;
+}
+
+.menu.active {
+    background: #7263ed;
+    color: white;
+    box-shadow: 0 3px 10px rgba(100, 80, 230, .3);
+}
+
+.menu i {
+    width: 18px;
+}
+
+.submenu {
+    display: block;
+    padding: 8px 40px;
+    font-size: 12px;
+    color: #777;
+}
+
+.badge {
+    margin-left: auto;
+    background: #ff5c5c;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+}
+
+
+/* ================= MAIN ================= */
+
+.main {
+    margin-left: 245px;
+    width: calc(100% - 245px);
+}
+
+.topbar {
+    height: 65px;
+    background: white;
+    margin: 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+}
+
+.search {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #999;
+}
+
+.search input {
+    border: none;
+    outline: none;
+    font-size: 14px;
+    width: 300px;
+}
+
+.top-icons {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.profile {
+    width: 35px;
+    height: 35px;
+    background: #7263ed;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* ================= CONTENT ================= */
+
+.content {
+    padding: 8px 18px 30px;
+}
+
+.top-cards {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 14px;
+}
+
+.website-card {
+    background: #7061ec;
+    color: white;
+    border-radius: 7px;
+    padding: 22px;
+    min-height: 145px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.website-card h3 {
+    font-size: 15px;
+}
+
+.website-card p {
+    font-size: 11px;
+    margin-top: 5px;
+}
+
+.stats {
+    display: flex;
+    gap: 25px;
+    margin-top: 22px;
+}
+
+.stats div {
+    display: flex;
+    flex-direction: column;
+}
+
+.stats strong {
+    font-size: 18px;
+}
+
+.stats small {
+    font-size: 10px;
+    margin-top: 4px;
+}
+
+.sphere {
+    font-size: 70px;
+    align-self: center;
+}
+
+
+/* ================= CARDS ================= */
+
+.card {
+    background: white;
+    border-radius: 7px;
+    padding: 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+}
+
+.card h3 {
+    font-size: 14px;
+    color: #555;
+}
+
+.card p {
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 4px;
+}
+
+.sales-card {
+    position: relative;
+}
+
+.green {
+    position: absolute;
+    right: 15px;
+    top: 18px;
+    color: #28c76f;
+    font-size: 11px;
+}
+
+.sales-card h2 {
+    margin-top: 10px;
+    font-size: 25px;
+}
+
+.sales-info {
+    display: flex;
+    gap: 35px;
+    margin-top: 15px;
+}
+
+.sales-info div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.sales-info b {
+    font-size: 12px;
+}
+
+.sales-info span,
+.sales-info small {
+    font-size: 10px;
+    color: #999;
+}
+
+.progress {
+    height: 5px;
+    background: #eee;
+    margin-top: 15px;
+}
+
+.progress span {
+    display: block;
+    width: 65%;
+    height: 100%;
+    background: #21c9dc;
+}
+
+.revenue h3 {
+    font-size: 24px;
+}
+
+.revenue p {
+    font-size: 11px;
+}
+
+.line-chart {
+    height: 70px;
+    margin-top: 15px;
+    border-bottom: 3px solid #2bcf72;
+    border-radius: 50%;
+}
+
+
+/* ================= SECOND ROW ================= */
+
+.two-column {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.earning {
+    min-height: 230px;
+}
+
+.earning-number {
+    font-size: 28px;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+.earning-number span {
+    font-size: 11px;
+    color: #27c96e;
+    background: #e9fff1;
+    padding: 5px;
+}
+
+.bars {
+    height: 90px;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    gap: 13px;
+    margin-top: -45px;
+}
+
+.bars span,
+.mini-bars span {
+    width: 17px;
+    background: #dedaff;
+    border-radius: 4px 4px 0 0;
+}
+
+.bars span:nth-child(5) {
+    background: #7061ec;
+}
+
+.earning-bottom {
+    display: flex;
+    margin-top: 25px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+    gap: 50px;
+}
+
+.earning-bottom div {
+    display: flex;
+    flex-direction: column;
+}
+
+.earning-bottom b {
+    font-size: 13px;
+}
+
+.earning-bottom small {
+    color: #aaa;
+    font-size: 10px;
+    margin-top: 4px;
+}
+
+
+/* SUPPORT */
+
+.support {
+    position: relative;
+    min-height: 230px;
+}
+
+.support h1 {
+    font-size: 28px;
+    margin-top: 20px;
+}
+
+.support > span {
+    font-size: 10px;
+    color: #aaa;
+}
+
+.circle {
+    position: absolute;
+    right: 35px;
+    top: 65px;
+    width: 130px;
+    height: 130px;
+    border: 14px solid #e3e0ff;
+    border-right-color: #7061ec;
+    border-top-color: #7061ec;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.circle b {
+    font-size: 24px;
+}
+
+.circle small {
+    font-size: 8px;
+    color: #aaa;
+}
+
+.tickets {
+    margin-top: 25px;
+}
+
+.tickets p {
+    width: 170px;
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+}
+
+
+/* ================= THIRD ROW ================= */
+
+.three-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.country {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 17px;
+}
+
+.country > span {
+    font-size: 22px;
+}
+
+.country div {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.country b {
+    font-size: 12px;
+}
+
+.country small {
+    font-size: 9px;
+    color: #aaa;
+    margin-top: 3px;
+}
+
+.country strong {
+    font-size: 10px;
+    color: #25c86d;
+}
+
+.country:nth-child(3) strong,
+.country:nth-child(5) strong {
+    color: #ff5b6e;
+}
+
+
+/* TOTAL */
+
+.total-number {
+    font-size: 27px;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+.total-number span {
+    color: #28c76f;
+    font-size: 10px;
+}
+
+.mini-bars {
+    height: 120px;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.mini-bars span {
+    width: 13px;
+    background: #7162ed;
+}
+
+.total-info {
+    margin-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.total-info p {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.total-info b {
+    color: #27c96f;
+}
+
+
+/* CAMPAIGN */
+
+.campaign-row {
+    display: grid;
+    grid-template-columns: 25px 1fr 60px 35px;
+    align-items: center;
+    margin-top: 16px;
+    font-size: 11px;
+}
+
+.campaign-row span {
+    font-size: 15px;
+}
+
+.campaign-row strong {
+    text-align: right;
+    font-size: 10px;
+}
+
+.campaign-row em {
+    font-style: normal;
+    color: #25c86d;
+    text-align: right;
+    font-size: 9px;
+}
+
+
+/* ================= BOTTOM ================= */
+
+.bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.source-row {
+    display: grid;
+    grid-template-columns: 1fr 50px 60px;
+    margin-top: 25px;
+    font-size: 11px;
+}
+
+.source-row em {
+    color: #28c76f;
+    font-style: normal;
+}
+
+.projects table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.projects th,
+.projects td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 11px;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.status span {
+    width: 60px;
+    height: 5px;
+    background: #7061ec;
+    display: block;
+    border-radius: 5px;
+}
+
+
+/* ================= RESPONSIVE ================= */
+
+/* Tablet */
+@media (max-width: 1100px) {
+
+    .top-cards {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .website-card {
+        grid-column: span 2;
+    }
+
+    .three-column {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+
+/* Small Tablet */
+@media (max-width: 800px) {
+
+    .sidebar {
+        width: 70px;
+        padding: 20px 8px;
+    }
+
+    .sidebar .logo {
+        font-size: 0;
+        text-align: center;
+    }
+
+    .sidebar .logo span {
+        font-size: 25px;
+    }
+
+    .sidebar .menu-title {
+        display: none;
+    }
+
+    .sidebar .menu {
+        justify-content: center;
+        padding: 12px 8px;
+        font-size: 0;
+    }
+
+    .sidebar .menu i {
+        font-size: 16px;
+        width: auto;
+    }
+
+    .sidebar .submenu {
+        display: none;
+    }
+
+    .sidebar .badge {
+        display: none;
+    }
+
+    .main {
+        margin-left: 70px;
+        width: calc(100% - 70px);
+    }
+
+    .top-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .website-card {
+        grid-column: auto;
+    }
+
+    .two-column,
+    .three-column,
+    .bottom-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Mobile */
+@media (max-width: 576px) {
+
+    .sidebar {
+        display: none;
+    }
+
+    .main {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .topbar {
+        margin: 8px;
+        padding: 0 12px;
+    }
+
+    .search {
+        flex: 1;
+    }
+
+    .search input {
+        width: 100%;
+        max-width: 180px;
+    }
+
+    .top-icons {
+        gap: 10px;
+    }
+
+    .content {
+        padding: 8px 10px 25px;
+    }
+
+    .website-card {
+        padding: 18px;
+    }
+
+    .stats {
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .sphere {
+        font-size: 50px;
+    }
+
+    .earning-bottom {
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .circle {
+        position: static;
+        margin: 20px auto;
+    }
+
+    .tickets {
+        margin-top: 10px;
+    }
+
+    .projects {
+        overflow-x: auto;
+    }
+
+    .projects table {
+        min-width: 500px;
+    }
+}

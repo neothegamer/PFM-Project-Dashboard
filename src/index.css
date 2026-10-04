@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-navy-deep text-text-main font-sans;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-navy-card border border-border rounded-xl;
+  }
+
+  .card-elevated {
+    @apply bg-navy-elevated border border-border rounded-xl;
+  }
+
+  .btn-primary {
+    @apply bg-brand-purple hover:bg-brand-purple-hover text-white font-semibold px-4 py-2 rounded-lg
+           transition-all duration-200 hover:scale-[1.02] hover:shadow-glow active:scale-[0.98]
+           focus:outline-none focus:ring-2 focus:ring-brand-purple/50;
+  }
+
+  .btn-secondary {
+    @apply bg-navy-elevated hover:bg-border text-text-main font-medium px-4 py-2 rounded-lg
+           border border-border transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]
+           focus:outline-none focus:ring-2 focus:ring-brand-purple/30;
+  }
+
+  .btn-danger {
+    @apply bg-danger/10 hover:bg-danger/20 text-danger font-medium px-4 py-2 rounded-lg
+           border border-danger/30 transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-danger/30;
+  }
+
+  .input-field {
+    @apply w-full bg-navy-secondary border border-border rounded-lg px-4 py-3
+           text-text-main placeholder-text-muted text-sm
+           focus:outline-none focus:ring-2 focus:ring-brand-purple/50 focus:border-brand-purple/50
+           transition-all duration-200;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-text-secondary mb-1.5;
+  }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary
+           hover:bg-navy-elevated hover:text-text-main transition-all duration-200 cursor-pointer
+           text-sm font-medium;
+  }
+
+  .nav-item-active {
+    @apply bg-brand-purple/15 text-brand-purple border-r-2 border-brand-purple;
+  }
+
+  .page-enter {
+    animation: fadeIn 0.35s ease-out, slideUp 0.35s ease-out;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0D1B2A;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E3A4F;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8B5CF6;
+}
+
+/* Progress bar animation utility */
+.progress-animated {
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid #8B5CF6;
+  outline-offset: 2px;
+}

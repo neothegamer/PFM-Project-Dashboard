@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Vuexy Dashboard</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="logo">
+            <span>♥</span> Vuexy
+        </div>
+
+        <div class="menu-title">MENU</div>
+
+        <a class="menu active">
+            <i class="fa-solid fa-house"></i>
+            Dashboard
+        </a>
+
+        <a class="menu">
+            <i class="fa-solid fa-chart-line"></i>
+            Analytics
+        </a>
+
+        <a class="submenu">CRM</a>
+        <a class="submenu">eCommerce</a>
+        <a class="submenu">Layouts</a>
+
+        <div class="menu-title">APPS & PAGES</div>
+
+        <a class="menu">
+            <i class="fa-regular fa-calendar"></i>
+            Calendar
+        </a>
+
+        <a class="menu">
+            <i class="fa-solid fa-file-invoice"></i>
+            Invoice
+            <span class="badge">2</span>
+        </a>
+
+        <a class="menu">
+            <i class="fa-regular fa-user"></i>
+            Users
+        </a>
+
+        <a class="menu">
+            <i class="fa-solid fa-users"></i>
+            Roles & Permissions
+        </a>
+
+        <a class="menu">
+            <i class="fa-regular fa-file"></i>
+            Pages
+        </a>
+
+        <a class="menu">
+            <i class="fa-solid fa-lock"></i>
+            Authentications
+        </a>
+
+        <a class="menu">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            Wizard Examples
+        </a>
+
+        <a class="menu">
+            <i class="fa-regular fa-window-maximize"></i>
+            Modal Examples
+        </a>
+
+        <div class="menu-title">COMPONENTS</div>
+
+        <a class="menu">
+            <i class="fa-regular fa-square"></i>
+            Card
+        </a>
+
+        <a class="menu">
+            <i class="fa-solid fa-user"></i>
+            User Interface
+        </a>
+
+        <a class="menu">
+            <i class="fa-solid fa-expand"></i>
+            Extended UI
+        </a>
+
+        <a class="menu">
+            <i class="fa-solid fa-icons"></i>
+            Icons
+        </a>
+
+        <div class="menu-title">FORMS & TABLES</div>
+
+        <a class="menu">
+            <i class="fa-regular fa-rectangle-list"></i>
+            Form Elements
+        </a>
+
+        <a class="menu">
+            <i class="fa-solid fa-table"></i>
+            Tables
+        </a>
+
+        <a class="menu">
+            <i class="fa-solid fa-chart-simple"></i>
+            Data Tables
+        </a>
+
+        <div class="menu-title">CHARTS & MAPS</div>
+
+        <a class="menu">
+            <i class="fa-solid fa-chart-pie"></i>
+            Charts
+        </a>
+
+        <a class="menu">
+            <i class="fa-solid fa-key"></i>
+            Access Control
+        </a>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <!-- TOP BAR -->
+        <header class="topbar">
+
+            <div class="search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search (Ctrl+/)">
+            </div>
+
+            <div class="top-icons">
+                <span>🇺🇸</span>
+                <i class="fa-regular fa-moon"></i>
+                <i class="fa-solid fa-grid-2"></i>
+                <i class="fa-regular fa-bell"></i>
+                <div class="profile">A</div>
+            </div>
+
+        </header>
+
+
+        <!-- DASHBOARD -->
+        <section class="content">
+
+            <!-- FIRST ROW -->
+            <div class="top-cards">
+
+                <div class="website-card">
+
+                    <div>
+                        <h3>Website Analytics</h3>
+                        <p>Total 28.5% Conversion Rate</p>
+
+                        <div class="stats">
+
+                            <div>
+                                <strong>28%</strong>
+                                <small>Sessions</small>
+                            </div>
+
+                            <div>
+                                <strong>3.1k</strong>
+                                <small>Page Views</small>
+                            </div>
+
+                            <div>
+                                <strong>1.2k</strong>
+                                <small>Leads</small>
+                            </div>
+
+                            <div>
+                                <strong>12%</strong>
+                                <small>Conversions</small>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="sphere">◉</div>
+
+                </div>
+
+
+                <div class="sales-card card">
+
+                    <h3>Sales Overview</h3>
+
+                    <div class="green">+18.2%</div>
+
+                    <h2>$42.5k</h2>
+
+                    <div class="sales-info">
+
+                        <div>
+                            <b>62.2%</b>
+                            <span>Order</span>
+                            <small>6,440</small>
+                        </div>
+
+                        <div>
+                            <b>25.5%</b>
+                            <span>Visits</span>
+                            <small>12,749</small>
+                        </div>
+
+                    </div>
+
+                    <div class="progress">
+                        <span></span>
+                    </div>
+
+                </div>
+
+
+                <div class="revenue card">
+
+                    <div>
+                        <h3>97.5k</h3>
+                        <p>Revenue Generated</p>
+                    </div>
+
+                    <div class="line-chart"></div>
+
+                </div>
+
+            </div>
+
+
+            <!-- SECOND ROW -->
+
+            <div class="two-column">
+
+                <div class="card earning">
+
+                    <h3>Earning Reports</h3>
+                    <p>Weekly Earnings Overview</p>
+
+                    <div class="earning-number">
+                        $468
+                        <span>+4.2%</span>
+                    </div>
+
+                    <div class="bars">
+
+                        <span style="height:40%"></span>
+                        <span style="height:65%"></span>
+                        <span style="height:85%"></span>
+                        <span style="height:55%"></span>
+                        <span style="height:100%"></span>
+                        <span style="height:70%"></span>
+                        <span style="height:90%"></span>
+
+                    </div>
+
+                    <div class="earning-bottom">
+
+                        <div>
+                            <b>$545.69</b>
+                            <small>Earnings</small>
+                        </div>
+
+                        <div>
+                            <b>$256.34</b>
+                            <small>Profit</small>
+                        </div>
+
+                        <div>
+                            <b>$74.19</b>
+                            <small>Expense</small>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card support">
+
+                    <h3>Support Tracker</h3>
+                    <p>Last 7 Days</p>
+
+                    <h1>164</h1>
+                    <span>Total Tickets</span>
+
+                    <div class="circle">
+                        <b>85%</b>
+                        <small>Completed Task</small>
+                    </div>
+
+                    <div class="tickets">
+                        <p>New Tickets <b>142</b></p>
+                        <p>Open Tickets <b>28</b></p>
+                        <p>Response Time <b>1 Day</b></p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- THIRD ROW -->
+
+            <div class="three-column">
+
+                <!-- COUNTRIES -->
+                <div class="card countries">
+
+                    <h3>Sales by Countries</h3>
+                    <p>Monthly Sales Overview</p>
+
+                    <div class="country">
+                        <span>🇺🇸</span>
+                        <div>
+                            <b>$8.45k</b>
+                            <small>United States</small>
+                        </div>
+                        <strong>↑ 25.8%</strong>
+                    </div>
+
+                    <div class="country">
+                        <span>🇧🇷</span>
+                        <div>
+                            <b>$7.78k</b>
+                            <small>Brazil</small>
+                        </div>
+                        <strong>↓ 16.2%</strong>
+                    </div>
+
+                    <div class="country">
+                        <span>🇮🇳</span>
+                        <div>
+                            <b>$6.48k</b>
+                            <small>India</small>
+                        </div>
+                        <strong>↑ 12.3%</strong>
+                    </div>
+
+                    <div class="country">
+                        <span>🇦🇺</span>
+                        <div>
+                            <b>$5.12k</b>
+                            <small>Australia</small>
+                        </div>
+                        <strong>↓ 11.9%</strong>
+                    </div>
+
+                    <div class="country">
+                        <span>🇫🇷</span>
+                        <div>
+                            <b>$4.45k</b>
+                            <small>France</small>
+                        </div>
+                        <strong>↑ 16.2%</strong>
+                    </div>
+
+                    <div class="country">
+                        <span>🇨🇳</span>
+                        <div>
+                            <b>$3.90k</b>
+                            <small>China</small>
+                        </div>
+                        <strong>↑ 14.8%</strong>
+                    </div>
+
+                </div>
+
+
+                <!-- TOTAL EARNING -->
+                <div class="card total">
+
+                    <h3>Total Earning</h3>
+
+                    <div class="total-number">
+                        87%
+                        <span>↑ 25.8%</span>
+                    </div>
+
+                    <div class="mini-bars">
+
+                        <span style="height:80%"></span>
+                        <span style="height:55%"></span>
+                        <span style="height:95%"></span>
+                        <span style="height:45%"></span>
+                        <span style="height:70%"></span>
+                        <span style="height:85%"></span>
+                        <span style="height:60%"></span>
+
+                    </div>
+
+                    <div class="total-info">
+                        <p>Total Sales <b>+$98</b></p>
+                        <p>Total Revenue <b>+$126</b></p>
+                    </div>
+
+                </div>
+
+
+                <!-- CAMPAIGN -->
+                <div class="card campaign">
+
+                    <h3>Monthly Campaign State</h3>
+                    <p>8.52k Social Visitors</p>
+
+                    <div class="campaign-row">
+                        <span>✉️</span>
+                        <b>Emails</b>
+                        <strong>12,346</strong>
+                        <em>0.3%</em>
+                    </div>
+
+                    <div class="campaign-row">
+                        <span>🔗</span>
+                        <b>Opened</b>
+                        <strong>8,734</strong>
+                        <em>2.1%</em>
+                    </div>
+
+                    <div class="campaign-row">
+                        <span>☀️</span>
+                        <b>Clicked</b>
+                        <strong>967</strong>
+                        <em>1.4%</em>
+                    </div>
+
+                    <div class="campaign-row">
+                        <span>👥</span>
+                        <b>Subscribe</b>
+                        <strong>345</strong>
+                        <em>8.5%</em>
+                    </div>
+
+                    <div class="campaign-row">
+                        <span>⚠️</span>
+                        <b>Complaints</b>
+                        <strong>10</strong>
+                        <em>1.5%</em>
+                    </div>
+
+                    <div class="campaign-row">
+                        <span>🚫</span>
+                        <b>Unsubscribe</b>
+                        <strong>86</strong>
+                        <em>0.8%</em>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- BOTTOM -->
+            <div class="bottom-row">
+
+                <div class="card source">
+
+                    <h3>Source Visits</h3>
+                    <p>38.4k Visitors</p>
+
+                    <div class="source-row">
+                        <b>Direct Source</b>
+                        <span>1.2k</span>
+                        <em>+4.2%</em>
+                    </div>
+
+                    <div class="source-row">
+                        <b>Social Networks</b>
+                        <span>31.5k</span>
+                        <em>+8.2%</em>
+                    </div>
+
+                </div>
+
+
+                <div class="card projects">
+
+                    <h3>Projects</h3>
+
+                    <table>
+
+                        <tr>
+                            <th>Name</th>
+                            <th>Leader</th>
+                            <th>Team</th>
+                            <th>Status</th>
+                        </tr>
+
+                        <tr>
+                            <td>Website SEO</td>
+                            <td>Eileen</td>
+                            <td>👤 👤 👤</td>
+                            <td>
+                                <div class="status">
+                                    <span></span>98%
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Logo Design</td>
+                            <td>John</td>
+                            <td>👤 👤</td>
+                            <td>
+                                <div class="status">
+                                    <span></span>75%
+                                </div>
+                            </td>
+                        </tr>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>
