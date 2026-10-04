@@ -1,5 +1,6 @@
 import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { useFinance } from '../../context/FinanceContext.jsx';
 
 const CustomTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
@@ -22,39 +23,65 @@ const renderLegend = (props) => {
       {payload.map((entry, i) => (
         <div key={i} className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-          <span className="text-xs text-text-secondary truncate">{entry.value}</span>
+          <span className="text-xs text-white truncate">{entry.value}</span>
         </div>
       ))}
     </div>
   );
 };
 
-const ExpenseOverview = ({ data }) => (
-  <div className="card p-5 animate-slide-up" style={{ animationDelay: '0.3s' }}>
-    <div className="mb-4">
-      <h3 className="text-base font-semibold text-text-main">Expense Distribution</h3>
-      <p className="text-xs text-text-muted mt-0.5">Spending by category this month</p>
+const ExpenseOverview = ({ data }) => {
+  const { budgets } = useFinance();
+
+  // Map each budget category to its saved color
+  const budgetColorByCategory = React.useMemo(() => {
+    const map = {};
+    (budgets || []).forEach((b) => {
+      const name = (b.category || '').trim();
+      if (name) map[name] = b.color || '#8B5CF6';
+    });
+    return map;
+  }, [budgets]);
+
+  // Override the hardcoded palette color with the budget's saved color when one exists
+  const coloredData = React.useMemo(
+    () =>
+      (data || []).map((entry) => {
+        const name = (entry.name || '').trim();
+        return budgetColorByCategory[name]
+          ? { ...entry, color: budgetColorByCategory[name] }
+          : entry;
+      }),
+    [data, budgetColorByCategory]
+  );
+
+  return (
+    <div className="card p-5 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+      <div className="mb-4">
+        <h3 className="text-base font-semibold text-text-main">Expense Distribution</h3>
+        <p className="text-xs text-text-muted mt-0.5">Spending by category this month</p>
+      </div>
+      <ResponsiveContainer width="100%" height={200}>
+        <PieChart>
+          <Pie
+            data={coloredData}
+            cx="50%"
+            cy="50%"
+            innerRadius={55}
+            outerRadius={80}
+            paddingAngle={3}
+            dataKey="value"
+          >
+            {coloredData.map((entry, i) => (
+              <Cell key={i} fill={entry.color} stroke="transparent" />
+            ))}
+          </Pie>
+          <Tooltip content={<CustomTooltip />} />
+          <Legend content={renderLegend} />
+        </PieChart>
+      </ResponsiveContainer>
     </div>
-    <ResponsiveContainer width="100%" height={200}>
-      <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          innerRadius={55}
-          outerRadius={80}
-          paddingAngle={3}
-          dataKey="value"
-        >
-          {data.map((entry, i) => (
-            <Cell key={i} fill={entry.color} stroke="transparent" />
-          ))}
-        </Pie>
-        <Tooltip content={<CustomTooltip />} />
-        <Legend content={renderLegend} />
-      </PieChart>
-    </ResponsiveContainer>
-  </div>
-);
+  );
+};
 
 export default ExpenseOverview;
