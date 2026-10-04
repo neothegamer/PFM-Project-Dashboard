@@ -153,10 +153,10 @@ export const transactions = {
     return request(`/transactions${qs ? `?${qs}` : ''}`);
   },
 
-  async createTransaction({ account, name, amount, date, category }) {
+  async createTransaction({ account, name, amount, date, category, notes }) {
     return request('/transactions', {
       method: 'POST',
-      body: { account, name, amount, date, category },
+      body: { account, name, amount, date, category, notes },
     });
   },
 
@@ -186,10 +186,10 @@ export const budgets = {
     return request('/budgets');
   },
 
-  async setBudget({ category, monthlyLimit }) {
+  async setBudget({ category, monthlyLimit, color, notes }) {
     return request('/budgets', {
       method: 'PUT',
-      body: { category, monthlyLimit },
+      body: { category, monthlyLimit, color, notes },
     });
   },
 

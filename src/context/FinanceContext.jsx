@@ -60,7 +60,7 @@ function mapBudget(b, statusItem) {
     limit: b.monthlyLimit ?? b.limit ?? 0,
     spent: statusItem?.spent ?? statusItem?.actual ?? b.spent ?? 0,
     notes: b.notes || '',
-    color: '#8B5CF6',
+    color: b.color || '#8B5CF6',
   };
 }
 
@@ -287,6 +287,7 @@ export const FinanceProvider = ({ children }) => {
           amount,
           date: newTx.date,
           category: newTx.category,
+          notes: newTx.notes,
         });
         const created = data.transaction || data;
         setTransactions((prev) => [mapTransaction(created), ...prev]);
@@ -319,6 +320,8 @@ export const FinanceProvider = ({ children }) => {
         await api.budgets.setBudget({
           category: newBudget.category,
           monthlyLimit: Number(newBudget.limit),
+          color: newBudget.color,
+          notes: newBudget.notes,
         });
         await loadData();
       } catch (err) {
@@ -337,6 +340,8 @@ export const FinanceProvider = ({ children }) => {
         await api.budgets.setBudget({
           category,
           monthlyLimit: Number(updated.limit),
+          color: updated.color ?? existing?.color,
+          notes: updated.notes ?? existing?.notes,
         });
         await loadData();
       } catch (err) {

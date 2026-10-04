@@ -6,25 +6,13 @@ import Modal from '../components/common/Modal.jsx';
 import Button from '../components/common/Button.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import api from '../services/api.js';
-
-const CATEGORIES = [
-  'Food',
-  'Transport',
-  'Shopping',
-  'Bills',
-  'Entertainment',
-  'Healthcare',
-  'Salary',
-  'Freelance',
-  'Investment',
-  'Other',
-];
+import { CATEGORIES, CATEGORY_ICONS } from '../data/categories.js';
 
 const PAGE_SIZE = 8;
 
 const getAccountId = (acc) => (acc ? acc._id || acc.id : '');
 const getAccountLabel = (acc) =>
-  acc ? acc.name || acc.officialName || 'Account' : '—';
+  acc ? acc.name || acc.officialName || 'Account' : '\u2014';
 
 const TransactionsPage = () => {
   const {
@@ -48,7 +36,7 @@ const TransactionsPage = () => {
     description: '',
     amount: '',
     type: 'expense',
-    category: 'Food',
+    category: 'Food and Drink',
     account: '',
     date: new Date().toISOString().split('T')[0],
     notes: '',
@@ -73,7 +61,7 @@ const TransactionsPage = () => {
       description: '',
       amount: '',
       type: 'expense',
-      category: 'Food',
+      category: 'Food and Drink',
       account: defaultAccountId,
       date: new Date().toISOString().split('T')[0],
       notes: '',
@@ -148,7 +136,7 @@ const TransactionsPage = () => {
 
     try {
       if (editTx) {
-        // PUT /api/transactions/:id — only name, amount, date, category
+        // PUT /api/transactions/:id \u2014 only name, amount, date, category
         const rawAmount = Number(form.amount);
         const amount =
           form.type === 'income' ? -Math.abs(rawAmount) : Math.abs(rawAmount);
@@ -206,7 +194,7 @@ const TransactionsPage = () => {
     if (typeof tx.account === 'string' && !/^[a-f0-9]{24}$/i.test(tx.account)) {
       return tx.account;
     }
-    return '—';
+    return '\u2014';
   };
 
   const filtered = useMemo(() => {
@@ -246,19 +234,6 @@ const TransactionsPage = () => {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-
-  const CATEGORY_ICONS = {
-    Food: '🍽️',
-    Transport: '🚗',
-    Shopping: '🛍️',
-    Bills: '⚡',
-    Entertainment: '🎬',
-    Healthcare: '💊',
-    Salary: '💰',
-    Freelance: '💻',
-    Investment: '📈',
-    Other: '📦',
-  };
 
   return (
     <div className="space-y-5 max-w-7xl">
@@ -337,9 +312,9 @@ const TransactionsPage = () => {
           >
             <option value="date-desc">Date: Newest</option>
             <option value="date-asc">Date: Oldest</option>
-            <option value="amount-desc">Amount: High→Low</option>
-            <option value="amount-asc">Amount: Low→High</option>
-            <option value="description-asc">Name: A→Z</option>
+            <option value="amount-desc">Amount: High\u2192Low</option>
+            <option value="amount-asc">Amount: Low\u2192High</option>
+            <option value="description-asc">Name: A\u2192Z</option>
           </select>
         </div>
       </div>
@@ -401,7 +376,7 @@ const TransactionsPage = () => {
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-2.5">
                           <span className="text-base">
-                            {CATEGORY_ICONS[tx.category] || '💳'}
+                            {CATEGORY_ICONS[tx.category] || '\u{1F4B3}'}
                           </span>
                           <div>
                             <p className="text-sm font-medium text-text-main">
@@ -476,7 +451,7 @@ const TransactionsPage = () => {
                   className="p-4 flex items-center gap-3"
                 >
                   <div className="text-2xl w-10 flex-shrink-0 text-center">
-                    {CATEGORY_ICONS[tx.category] || '💳'}
+                    {CATEGORY_ICONS[tx.category] || '\u{1F4B3}'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-text-main truncate">
@@ -528,7 +503,7 @@ const TransactionsPage = () => {
             {totalPages > 1 && (
               <div className="px-4 py-4 border-t border-border flex items-center justify-between">
                 <span className="text-xs text-text-muted">
-                  Page {page} of {totalPages} · {filtered.length} results
+                  Page {page} of {totalPages} \u00B7 {filtered.length} results
                 </span>
                 <div className="flex items-center gap-1.5">
                   <button
@@ -607,7 +582,7 @@ const TransactionsPage = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Amount (₹) *</label>
+              <label className="label">Amount (\u20B9) *</label>
               <input
                 type="number"
                 min="0"
@@ -663,7 +638,7 @@ const TransactionsPage = () => {
                 {accounts.map((acc) => (
                   <option key={getAccountId(acc)} value={getAccountId(acc)}>
                     {getAccountLabel(acc)}
-                    {acc.mask ? ` ••${acc.mask}` : ''}
+                    {acc.mask ? ` \u2022\u2022${acc.mask}` : ''}
                   </option>
                 ))}
               </select>

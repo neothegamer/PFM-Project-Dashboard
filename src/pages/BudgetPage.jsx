@@ -6,23 +6,7 @@ import Button from '../components/common/Button.jsx';
 import Modal from '../components/common/Modal.jsx';
 import ProgressBar from '../components/common/ProgressBar.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
-
-// Align with backend categorizer + Plaid-style names
-const CATEGORIES = [
-  'Food and Drink',
-  'Transportation',
-  'Shopping',
-  'Entertainment',
-  'Housing',
-  'Utilities',
-  'Health',
-  'Travel',
-  'Transfer',
-  'Payment',
-  'Recreation',
-  'Shops',
-  'Other',
-];
+import { CATEGORIES } from '../data/categories.js';
 
 const COLORS = [
   '#8B5CF6',
@@ -136,6 +120,8 @@ const BudgetPage = () => {
         await updateBudget(editBudget.id || editBudget._id, {
           category: form.category,
           limit: Number(form.limit),
+          notes: form.notes,
+          color: form.color,
         });
         flash('Budget updated successfully!');
       } else {
