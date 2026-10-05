@@ -7,11 +7,19 @@ import Button from '../components/common/Button.jsx';
 import Modal from '../components/common/Modal.jsx';
 import api from '../services/api.js';
 
-const AccountCard = ({ account, formatCurrency }) => {
+const AccountCard = ({
+  account,
+  formatCurrency,
+  isFailed,
+  onUnlink,
+  onRemove,
+  onReconnect,
+}) => {
   const isCredit =
     (account.type || '').toLowerCase().includes('credit') ||
     (account.subtype || '').toLowerCase().includes('credit');
   const balance = Number(account.balance) || 0;
+  const isManual = account.itemId === 'manual';
 
   return (
     <div
@@ -22,14 +30,14 @@ const AccountCard = ({ account, formatCurrency }) => {
         <div>
           <p className="text-sm font-bold text-text-main">{account.name}</p>
           <p className="text-xs text-text-muted mt-0.5">
-            {account.institution || 'Linked bank'}
+            {account.institution || (isManual ? 'Manual account' : 'Linked bank')}
           </p>
         </div>
         <Badge
-          variant={account.status === 'Connected' ? 'success' : 'warning'}
+          variant={isFailed ? 'warning' : 'success'}
           size="xs"
         >
-          {account.status || 'Connected'}
+          {isFailed ? 'Action required' : account.status || 'Connected'}
         </Badge>
       </div>
 
@@ -65,6 +73,36 @@ const AccountCard = ({ account, formatCurrency }) => {
           </p>
         </div>
       </div>
+
+      {/* Card actions */}
+      <div className="flex items-center justify-end gap-2 pt-3">
+        {isFailed && (
+          <Button
+            variant="secondary"
+            size="xs"
+            onClick={() => onReconnect(account)}
+          >
+            <Icon name="refresh" size={13} /> Reconnect
+          </Button>
+        )}
+        {isManual ? (
+          <Button
+            variant="danger"
+            size="xs"
+            onClick={() => onRemove(account)}
+          >
+            <Icon name="trash" size={13} /> Remove
+          </Button>
+        ) : (
+          <Button
+            variant="danger"
+            size="xs"
+            onClick={() => onUnlink(account)}
+          >
+            <Icon name="trash" size={13} /> Unlink
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
@@ -78,67 +116,104 @@ const AccountsPage = () => {
   } = useFinance();
 
   const [linkToken, setLinkToken] = useState(null);
+  const [updateItemId, setUpdateItemId] = useState(null); // set → Plaid Link runs in update mode
   const [linkLoading, setLinkLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Banks whose refresh failed with ITEM_LOGIN_REQUIRED, from the backend's
+  // refresh-balances response: [{ itemId, institution, error }] (shape-tolerant).
+  const [failedItems, setFailedItems] = useState([]);
+
+  // Unlink / remove confirmation: { account, isManual }
+  const [confirmTarget, setConfirmTarget] = useState(null);
+  const [confirmError, setConfirmError] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
   const flash = (msg) => {
     setSuccessMsg(msg);
     setTimeout(() => setSuccessMsg(''), 4000);
   };
 
-  // Fetch a link_token when user clicks "Connect Account"
-  const startPlaidLink = async () => {
+  const failedIds = new Set(
+    failedItems.map((f) => (typeof f === 'string' ? f : f.itemId))
+  );
+
+  // Fetch a link_token when user clicks "Connect Account".
+  // Pass an existing itemId to enter update mode (reconnect a failed bank).
+  const startPlaidLink = async (itemId) => {
     setErrorMsg('');
     setLinkLoading(true);
+    setUpdateItemId(itemId || null);
     try {
-      const data = await api.plaid.createLinkToken();
+      const data = await api.plaid.createLinkToken(itemId);
       setLinkToken(data.link_token);
     } catch (err) {
       setErrorMsg(err.message || 'Failed to start bank linking');
       setLinkLoading(false);
+      setUpdateItemId(null);
     }
   };
 
-  // Called by Plaid when user finishes selecting a bank
+  // Called by Plaid when the user finishes the Link flow
   const onPlaidSuccess = useCallback(
     async (publicToken, metadata) => {
       setLinkLoading(false);
       setLinkToken(null);
+      const updatingItemId = updateItemId;
+      setUpdateItemId(null);
       setSyncing(true);
       setErrorMsg('');
       try {
-        // 1. Exchange public_token → save accounts
-        await api.plaid.exchangePublicToken(publicToken);
+        if (updatingItemId) {
+          // Update mode: the user re-authenticated an existing item.
+          // Nothing to exchange — just re-pull data and clear the warning.
+          try {
+            await api.plaid.syncTransactions();
+          } catch (syncErr) {
+            console.warn('Sync warning:', syncErr.message);
+          }
+          if (loadData) await loadData();
+          else if (refreshAccounts) await refreshAccounts();
+          setFailedItems((prev) =>
+            prev.filter((f) => (typeof f === 'string' ? f : f.itemId) !== updatingItemId)
+          );
+          flash(
+            `${metadata?.institution?.name || 'Bank'} reconnected. Balances and transactions are syncing.`
+          );
+        } else {
+          // 1. Exchange public_token → save accounts
+          await api.plaid.exchangePublicToken(publicToken);
 
-        // 2. Pull recent transactions
-        try {
-          await api.plaid.syncTransactions();
-        } catch (syncErr) {
-          // Sync can fail if PRODUCT_NOT_READY; accounts still linked
-          console.warn('Sync warning:', syncErr.message);
+          // 2. Pull recent transactions
+          try {
+            await api.plaid.syncTransactions();
+          } catch (syncErr) {
+            // Sync can fail if PRODUCT_NOT_READY; accounts still linked
+            console.warn('Sync warning:', syncErr.message);
+          }
+
+          // 3. Refresh UI data
+          if (loadData) await loadData();
+          else if (refreshAccounts) await refreshAccounts();
+
+          const bankName = metadata?.institution?.name || 'Bank';
+          flash(`${bankName} linked successfully. Transactions synced.`);
         }
-
-        // 3. Refresh UI data
-        if (loadData) await loadData();
-        else if (refreshAccounts) await refreshAccounts();
-
-        const bankName =
-          metadata?.institution?.name || 'Bank';
-        flash(`${bankName} linked successfully. Transactions synced.`);
       } catch (err) {
         setErrorMsg(err.message || 'Failed to link bank');
       } finally {
         setSyncing(false);
       }
     },
-    [loadData, refreshAccounts]
+    [loadData, refreshAccounts, updateItemId]
   );
 
   const onPlaidExit = useCallback(() => {
     setLinkLoading(false);
     setLinkToken(null);
+    setUpdateItemId(null);
   }, []);
 
   const { open, ready } = usePlaidLink({
@@ -158,14 +233,64 @@ const AccountsPage = () => {
     setSyncing(true);
     setErrorMsg('');
     try {
-      await api.plaid.refreshBalances();
-      await api.plaid.syncTransactions();
+      const data = await api.plaid.refreshBalances();
+      // Backend reports banks that need re-authentication here.
+      setFailedItems(
+        Array.isArray(data?.failed) ? data.failed : []
+      );
+      try {
+        await api.plaid.syncTransactions();
+      } catch (syncErr) {
+        console.warn('Sync warning:', syncErr.message);
+      }
       if (loadData) await loadData();
-      flash('Balances and transactions refreshed.');
+      if (Array.isArray(data?.failed) && data.failed.length > 0) {
+        flash('Balances refreshed, but some banks need to be reconnected.');
+      } else {
+        flash('Balances and transactions refreshed.');
+      }
     } catch (err) {
       setErrorMsg(err.message || 'Refresh failed');
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const handleUnlink = (account) => {
+    setConfirmError('');
+    setConfirmTarget({ account, isManual: false });
+  };
+
+  const handleRemove = (account) => {
+    setConfirmError('');
+    setConfirmTarget({ account, isManual: true });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmTarget) return;
+    const { account, isManual } = confirmTarget;
+    setConfirmError('');
+    setActionLoading(true);
+    try {
+      if (isManual) {
+        await api.accounts.deleteManual(account.id || account._id);
+        await loadData();
+        flash(`"${account.name}" removed.`);
+      } else {
+        await api.plaid.unlinkItem(account.itemId);
+        await loadData();
+        setFailedItems((prev) =>
+          prev.filter(
+            (f) => (typeof f === 'string' ? f : f.itemId) !== account.itemId
+          )
+        );
+        flash(`${account.institution || account.name} disconnected.`);
+      }
+      setConfirmTarget(null);
+    } catch (err) {
+      setConfirmError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -203,7 +328,7 @@ const AccountsPage = () => {
           )}
           <Button
             variant="primary"
-            onClick={startPlaidLink}
+            onClick={() => startPlaidLink()}
             disabled={linkLoading || syncing}
           >
             {linkLoading ? (
@@ -236,6 +361,40 @@ const AccountsPage = () => {
         <div className="flex items-center gap-2 px-4 py-3 bg-brand-purple/10 border border-brand-purple/30 rounded-xl text-brand-purple text-sm">
           <span className="w-4 h-4 border-2 border-brand-purple border-t-transparent rounded-full animate-spin" />
           Linking bank &amp; syncing transactions…
+        </div>
+      )}
+
+      {/* Banks that need re-authentication */}
+      {failedItems.length > 0 && (
+        <div className="px-4 py-3 bg-warning/10 border border-warning/30 rounded-xl text-sm space-y-2">
+          {failedItems.map((f) => {
+            const itemId = typeof f === 'string' ? f : f.itemId;
+            const name =
+              (typeof f === 'object' && (f.institution || f.institutionName)) ||
+              'A linked bank';
+            return (
+              <div
+                key={itemId}
+                className="flex flex-wrap items-center justify-between gap-2"
+              >
+                <span className="text-warning flex items-center gap-2">
+                  <Icon name="alertTriangle" size={16} />
+                  {name} needs to be reconnected.
+                  {typeof f === 'object' && f.error && (
+                    <span className="text-text-muted text-xs">({f.error})</span>
+                  )}
+                </span>
+                <Button
+                  variant="secondary"
+                  size="xs"
+                  onClick={() => startPlaidLink(itemId)}
+                  disabled={linkLoading || syncing}
+                >
+                  <Icon name="refresh" size={13} /> Reconnect
+                </Button>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -280,7 +439,7 @@ const AccountsPage = () => {
           </p>
           <Button
             variant="primary"
-            onClick={startPlaidLink}
+            onClick={() => startPlaidLink()}
             disabled={linkLoading || syncing}
           >
             <Icon name="link" size={16} /> Connect your first account
@@ -293,10 +452,77 @@ const AccountsPage = () => {
               key={acc.id || acc._id}
               account={acc}
               formatCurrency={formatCurrency}
+              isFailed={!!acc.itemId && failedIds.has(acc.itemId)}
+              onUnlink={handleUnlink}
+              onRemove={handleRemove}
+              onReconnect={(a) => startPlaidLink(a.itemId)}
             />
           ))}
         </div>
       )}
+
+      {/* Unlink / remove confirmation */}
+      <Modal
+        isOpen={!!confirmTarget}
+        onClose={() => !actionLoading && setConfirmTarget(null)}
+        title={
+          confirmTarget?.isManual
+            ? 'Remove manual account'
+            : `Disconnect ${confirmTarget?.account?.institution || 'bank'}?`
+        }
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-3 bg-danger/10 border border-danger/30 rounded-xl">
+            <Icon name="alertTriangle" size={18} className="text-danger flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-text-secondary leading-relaxed">
+              {confirmTarget?.isManual ? (
+                <>
+                  Remove <span className="font-semibold text-text-main">"{confirmTarget?.account?.name}"</span>?
+                  Its transaction history will be permanently deleted.
+                </>
+              ) : (
+                <>
+                  This disconnects the bank at Plaid and permanently deletes
+                  every account and transaction imported from it.{' '}
+                  <span className="font-semibold text-text-main">
+                    This cannot be undone.
+                  </span>
+                </>
+              )}
+            </p>
+          </div>
+
+          {confirmError && (
+            <p className="text-sm text-danger flex items-center gap-2">
+              <Icon name="alertCircle" size={15} /> {confirmError}
+            </p>
+          )}
+
+          <div className="flex gap-3 pt-1">
+            <Button
+              variant="secondary"
+              className="flex-1"
+              onClick={() => setConfirmTarget(null)}
+              disabled={actionLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              className="flex-1"
+              onClick={handleConfirmAction}
+              disabled={actionLoading}
+            >
+              {actionLoading
+                ? 'Working…'
+                : confirmTarget?.isManual
+                ? 'Remove account'
+                : 'Disconnect bank'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

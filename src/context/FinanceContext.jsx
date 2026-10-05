@@ -274,6 +274,46 @@ export const FinanceProvider = ({ children }) => {
     setCurrentPage('landing');
   }, [setCurrentPage]);
 
+  // ─── User profile / account settings ───────────────────────────
+  // Backed by PUT / DELETE /api/auth/me* on the backend.
+  // updateProfile persists the display name; email is the login identifier
+  // and intentionally has no edit flow.
+  const updateProfile = useCallback(async ({ name }) => {
+    const data = await api.user.updateProfile({ name });
+    const u = data.user || data;
+    setUser((prev) => (prev ? { ...prev, name: u.name ?? name } : prev));
+    return data;
+  }, []);
+
+  // Passes backend errors through ("Current password is incorrect", weak
+  // password, ...) so the form can show them.
+  const changePassword = useCallback(
+    ({ currentPassword, newPassword }) =>
+      api.user.changePassword({ currentPassword, newPassword }),
+    []
+  );
+
+  // Permanent — the backend requires the current password as confirmation
+  // (so a hijacked session token can't purge the account), disconnects every
+  // linked bank at Plaid, then deletes all data. On success the local token
+  // is cleared, all state is reset, and the user is routed to landing.
+  // Throws on failure — the caller must leave the account intact.
+  const deleteAccount = useCallback(
+    async (password) => {
+      await api.user.deleteAccount(password);
+      api.clearToken();
+      setUser(null);
+      setIsAuthenticated(false);
+      setAccounts([]);
+      setTransactions([]);
+      setBudgets([]);
+      setCategorySummary([]);
+      setMonthSummary([]);
+      setCurrentPage('landing');
+    },
+    [setCurrentPage]
+  );
+
   // ─── Transactions ──────────────────────────────────────────────
   const addTransaction = useCallback(
     async (newTx) => {
@@ -499,6 +539,9 @@ export const FinanceProvider = ({ children }) => {
         setIsAuthenticated,
         loginUser,
         logoutUser,
+        updateProfile,
+        changePassword,
+        deleteAccount,
         transactions,
         addTransaction,
         deleteTransaction,

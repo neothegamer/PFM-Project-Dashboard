@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
+import { useFinance } from '../../context/FinanceContext';
 import Input from '../common/Input';
 import Button from '../common/Button';
 import { IconCheck, IconEye, IconEyeOff } from '../common/Icons';
 
 export const SecuritySection = () => {
+  // changePassword → PUT /api/auth/me/password. Backend errors (wrong current
+  // password, weak new password) are passed through to the form.
+  const { changePassword } = useFinance();
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -25,7 +30,7 @@ export const SecuritySection = () => {
   const strengthLabels = ['Too weak', 'Weak', 'Fair', 'Strong', 'Very Strong'];
   const strengthColors = ['bg-slate-200', 'bg-red-500', 'bg-amber-500', 'bg-blue-500', 'bg-emerald-500'];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -44,21 +49,25 @@ export const SecuritySection = () => {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await changePassword({ currentPassword, newPassword });
       setSuccessMsg('Password updated successfully.');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setTimeout(() => setSuccessMsg(''), 4000);
-    }, 400);
+    } catch (err) {
+      setErrorMsg(err.message || 'Could not update password. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="bg-white rounded-2xl p-6 border border-brand-border shadow-card">
       <div className="pb-5 border-b border-slate-100 mb-6">
         <h3 className="text-base font-bold text-brand-text">Security & Password</h3>
-        <p className="text-xs text-brand-muted">Update your authentication password and security keys</p>
+        <p className="text-xs text-brand-muted">Update your authentication password</p>
       </div>
 
       {successMsg && (
@@ -125,8 +134,15 @@ export const SecuritySection = () => {
         />
 
         <div className="pt-2">
-          <Button type="submit" variant="primary" loading={loading}>
-            Update Password
+          <Button type="submit" variant="primary" disabled={loading}>
+            {loading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Updating…
+              </>
+            ) : (
+              'Update Password'
+            )}
           </Button>
         </div>
       </form>
