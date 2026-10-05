@@ -65,26 +65,34 @@ function mapBudget(b, statusItem) {
   };
 }
 
+// ─── Routing helpers ─────────────────────────────────────────────
+// Every page the hash router recognises. Public pages come first.
+const VALID_PAGES = [
+  'landing',
+  'login',
+  'register',
+  'forgot-password',
+  'reset-password',
+  'dashboard',
+  'transactions',
+  'accounts',
+  'budget',
+  'analytics',
+  'settings',
+];
+
+// Reads the current page from the URL hash. The query string is stripped
+// first so links like "#reset-password?token=abc" resolve to "reset-password"
+// (ResetPasswordPage reads the token from the hash itself).
+function getPageFromHash() {
+  const hash = window.location.hash.replace('#', '').split('?')[0];
+  return VALID_PAGES.includes(hash) ? hash : 'landing';
+}
+
 // ─── Provider ────────────────────────────────────────────────────
 
 export const FinanceProvider = ({ children }) => {
-  const getInitialPage = () => {
-    const hash = window.location.hash.replace('#', '');
-    const valid = [
-      'landing',
-      'login',
-      'register',
-      'dashboard',
-      'transactions',
-      'accounts',
-      'budget',
-      'analytics',
-      'settings',
-    ];
-    return valid.includes(hash) ? hash : 'landing';
-  };
-
-  const [currentPage, setCurrentPageState] = useState(getInitialPage);
+  const [currentPage, setCurrentPageState] = useState(getPageFromHash);
 
   const setCurrentPage = useCallback((page, options = {}) => {
     const { replace = false } = options;
@@ -98,19 +106,7 @@ export const FinanceProvider = ({ children }) => {
 
   useEffect(() => {
     const handlePopState = () => {
-      const hash = window.location.hash.replace('#', '');
-      const valid = [
-        'landing',
-        'login',
-        'register',
-        'dashboard',
-        'transactions',
-        'accounts',
-        'budget',
-        'analytics',
-        'settings',
-      ];
-      setCurrentPageState(valid.includes(hash) ? hash : 'landing');
+      setCurrentPageState(getPageFromHash());
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);

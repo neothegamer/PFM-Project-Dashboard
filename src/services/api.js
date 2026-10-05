@@ -92,6 +92,23 @@ export const auth = {
     return request('/auth/me');
   },
 
+  // POST /api/auth/forgot-password — emails a reset link if the account exists.
+  // The backend should respond 200 either way (don't leak which emails exist).
+  async forgotPassword(email) {
+    return request('/auth/forgot-password', {
+      method: 'POST',
+      body: { email },
+    });
+  },
+
+  // POST /api/auth/reset-password — token comes from the emailed link.
+  async resetPassword({ token, password }) {
+    return request('/auth/reset-password', {
+      method: 'POST',
+      body: { token, password },
+    });
+  },
+
   logout() {
     clearToken();
   },
@@ -263,4 +280,4 @@ const api = {
   clearToken,
 };
 
-export default api;
+export default api;

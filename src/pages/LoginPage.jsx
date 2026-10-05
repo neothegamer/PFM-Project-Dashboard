@@ -188,6 +188,7 @@ const LoginPage = () => {
               </label>
               <button
                 type="button"
+                onClick={() => setCurrentPage('forgot-password')}
                 className="text-sm text-brand-purple hover:text-brand-purple-hover font-medium transition-colors"
               >
                 Forgot password?
@@ -226,4 +227,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default LoginPage;

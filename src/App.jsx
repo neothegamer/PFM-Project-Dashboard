@@ -2,6 +2,8 @@ import { FinanceProvider, useFinance } from './context/FinanceContext.jsx';
 import LandingPage from './pages/LandingPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
+import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
+import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import Layout from './components/layout/Layout.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import TransactionsPage from './pages/TransactionsPage.jsx';
@@ -17,6 +19,8 @@ function AppRouter() {
   if (currentPage === 'landing') return <LandingPage />;
   if (currentPage === 'login') return <LoginPage />;
   if (currentPage === 'register') return <RegisterPage />;
+  if (currentPage === 'forgot-password') return <ForgotPasswordPage />;
+  if (currentPage === 'reset-password') return <ResetPasswordPage />;
 
   // Protected pages — require auth
   if (!isAuthenticated) return <LandingPage />;
