@@ -12,29 +12,6 @@ const FinanceContext = createContext(null);
 
 // ─── Helpers: map backend → UI shape ─────────────────────────────
 
-// ISO 4217 → display symbol, for the currencies Plaid commonly returns.
-// Unknown codes render as "EUR 123" rather than guessing a symbol.
-const CURRENCY_SYMBOLS = {
-  USD: '$',
-  INR: '₹',
-  EUR: '€',
-  GBP: '£',
-  CAD: 'C$',
-  AUD: 'A$',
-  JPY: '¥',
-  CNY: '¥',
-};
-
-function currencySymbol(code) {
-  if (!code) return '$';
-  return CURRENCY_SYMBOLS[code] || `${code} `;
-}
-
-// User's display-currency preference. Set via setCurrency (e.g. a settings
-// selector); when absent we auto-detect from the linked bank accounts so
-// Plaid USD data doesn't render as ₹.
-const CURRENCY_PREF_KEY = 'pfm_currency';
-
 function mapAccount(a) {
   return {
     id: a._id || a.id,
@@ -45,8 +22,7 @@ function mapAccount(a) {
     accountNumber: a.mask ? `•••• ${a.mask}` : '••••',
     balance: a.currentBalance ?? a.balance ?? 0,
     availableBalance: a.availableBalance ?? a.currentBalance ?? 0,
-    currency: currencySymbol(a.isoCurrencyCode),
-    isoCurrencyCode: a.isoCurrencyCode,
+    currency: a.isoCurrencyCode === 'USD' ? '$' : '₹',
     status: 'Connected',
     lastSync: 'Just now',
     color: '#8B5CF6',
@@ -149,19 +125,7 @@ export const FinanceProvider = ({ children }) => {
   const [accounts, setAccounts] = useState([]);
   const [categorySummary, setCategorySummary] = useState([]);
   const [monthSummary, setMonthSummary] = useState([]);
-  // Default '$' matches the Plaid sandbox (USD). Once accounts load we
-  // auto-detect the real currency unless the user has explicitly picked one.
-  const [currency, setCurrencyState] = useState(
-    () => localStorage.getItem(CURRENCY_PREF_KEY) || '$'
-  );
-  const setCurrency = useCallback((next) => {
-    setCurrencyState(next);
-    try {
-      localStorage.setItem(CURRENCY_PREF_KEY, next);
-    } catch {
-      // storage unavailable (private mode) — the in-memory value still works
-    }
-  }, []);
+  const [currency, setCurrency] = useState('₹');
   const [dataLoading, setDataLoading] = useState(false);
   const [dataError, setDataError] = useState('');
 
@@ -183,26 +147,7 @@ export const FinanceProvider = ({ children }) => {
 
       if (accRes.status === 'fulfilled') {
         const list = accRes.value.accounts || accRes.value || [];
-        const mapped = Array.isArray(list) ? list.map(mapAccount) : [];
-        setAccounts(mapped);
-
-        // Auto-detect the display currency from the user's accounts,
-        // preferring a Plaid-linked one over a manual account. Skipped
-        // entirely when the user has chosen a currency in settings.
-        try {
-          if (!localStorage.getItem(CURRENCY_PREF_KEY)) {
-            const withCode = (a) => a.isoCurrencyCode;
-            const linked = mapped.find(
-              (a) => a.itemId && a.itemId !== 'manual' && withCode(a)
-            );
-            const any = linked || mapped.find(withCode);
-            if (any?.isoCurrencyCode) {
-              setCurrencyState(currencySymbol(any.isoCurrencyCode));
-            }
-          }
-        } catch {
-          // currency detection is best-effort
-        }
+        setAccounts(Array.isArray(list) ? list.map(mapAccount) : []);
       } else {
         setAccounts([]);
       }
@@ -329,34 +274,28 @@ export const FinanceProvider = ({ children }) => {
     setCurrentPage('landing');
   }, [setCurrentPage]);
 
-  // ─── User profile / account settings ───────────────────────────
-  // Backed by PUT / DELETE /api/auth/me* on the backend.
-  // updateProfile persists the display name; email is the login identifier
-  // and intentionally has no edit flow.
+  // ─── Profile / account lifecycle ───────────────────────────────
+  // PUT /api/auth/me — the backend only supports name edits for now
+  // (email is the login identifier and needs its own verification flow).
+  // PUT /api/auth/me/password — returns { message } on success, throws with
+  // the backend's error text on 401 (wrong current password) / 400.
+  const changePassword = useCallback(({ currentPassword, newPassword }) => {
+    return api.user.changePassword({ currentPassword, newPassword });
+  }, []);
+
   const updateProfile = useCallback(async ({ name }) => {
     const data = await api.user.updateProfile({ name });
     const u = data.user || data;
-    setUser((prev) => (prev ? { ...prev, name: u.name ?? name } : prev));
-    return data;
+    setUser((prev) => ({ ...prev, name: u.name, email: u.email }));
+    return u;
   }, []);
 
-  // Passes backend errors through ("Current password is incorrect", weak
-  // password, ...) so the form can show them.
-  const changePassword = useCallback(
-    ({ currentPassword, newPassword }) =>
-      api.user.changePassword({ currentPassword, newPassword }),
-    []
-  );
-
-  // Permanent — the backend requires the current password as confirmation
-  // (so a hijacked session token can't purge the account), disconnects every
-  // linked bank at Plaid, then deletes all data. On success the local token
-  // is cleared, all state is reset, and the user is routed to landing.
-  // Throws on failure — the caller must leave the account intact.
+  // DELETE /api/auth/me — permanent; requires the current password.
+  // Backend removes linked banks at Plaid first, then wipes all local data.
   const deleteAccount = useCallback(
     async (password) => {
       await api.user.deleteAccount(password);
-      api.clearToken();
+      api.auth.logout();
       setUser(null);
       setIsAuthenticated(false);
       setAccounts([]);
@@ -383,9 +322,6 @@ export const FinanceProvider = ({ children }) => {
           amount,
           date: newTx.date,
           category: newTx.category,
-          // The API and backend both accept notes — forward it so manual
-          // entries keep whatever the user typed.
-          notes: newTx.notes,
         });
         const created = data.transaction || data;
         setTransactions((prev) => [mapTransaction(created), ...prev]);
@@ -393,26 +329,6 @@ export const FinanceProvider = ({ children }) => {
         return created;
       } catch (err) {
         console.error('addTransaction failed', err);
-        throw err;
-      }
-    },
-    [loadData]
-  );
-
-  const updateTransaction = useCallback(
-    async (id, updates) => {
-      try {
-        const data = await api.transactions.updateTransaction(id, updates);
-        const updated = data.transaction || data;
-        setTransactions((prev) =>
-          prev.map((t) =>
-            t.id === id || t._id === id ? mapTransaction(updated) : t
-          )
-        );
-        await loadData(); // refresh list + summaries
-        return updated;
-      } catch (err) {
-        console.error('updateTransaction failed', err);
         throw err;
       }
     },
@@ -585,11 +501,22 @@ export const FinanceProvider = ({ children }) => {
     return [];
   }, [monthSummary]);
 
+  // Number grouping follows the currency, not the user's locale:
+  // Indian lakh/crore grouping (2,50,248) applies ONLY to ₹; every other
+  // currency uses its standard thousands grouping ($250,248 / 250.248 €).
+  const LOCALE_FOR_CURRENCY = {
+    '₹': 'en-IN',
+    '$': 'en-US',
+    '€': 'de-DE',
+    '£': 'en-GB',
+  };
+
   const formatCurrency = useCallback(
     (amount) => {
       if (amount === undefined || amount === null) return `${currency}0`;
+      const locale = LOCALE_FOR_CURRENCY[currency] || 'en-US';
       const absVal = Math.abs(amount);
-      const formatted = new Intl.NumberFormat('en-IN', {
+      const formatted = new Intl.NumberFormat(locale, {
         maximumFractionDigits: 0,
       }).format(absVal);
       if (amount < 0) return `-${currency}${formatted}`;
@@ -622,7 +549,6 @@ export const FinanceProvider = ({ children }) => {
         deleteAccount,
         transactions,
         addTransaction,
-        updateTransaction,
         deleteTransaction,
         budgets,
         addBudget,

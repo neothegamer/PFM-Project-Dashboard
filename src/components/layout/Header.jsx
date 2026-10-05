@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useFinance } from '../../context/FinanceContext.jsx';
 import { Icon } from '../common/Icons.jsx';
 
@@ -11,23 +11,94 @@ const PAGE_TITLES = {
   settings: 'Settings',
 };
 
-const NOTIFICATIONS = [
-  { id: 1, text: 'Entertainment budget 109% used — over limit!', type: 'danger', time: '2 min ago' },
-  { id: 2, text: 'Salary of ₹1,45,000 credited to HDFC account', type: 'income', time: '2 hrs ago' },
-  { id: 3, text: 'Food budget at 84% — approaching limit', type: 'warning', time: '1 day ago' },
-];
+// "x min ago" from an ISO date string.
+function timeAgo(dateStr) {
+  const then = new Date(dateStr).getTime();
+  if (Number.isNaN(then)) return '';
+  const mins = Math.floor((Date.now() - then) / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hr${hrs > 1 ? 's' : ''} ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days} day${days > 1 ? 's' : ''} ago`;
+}
 
 const Topbar = ({ onMenuClick }) => {
-  const { currentPage, user } = useFinance();
+  const {
+    currentPage,
+    user,
+    setCurrentPage,
+    logoutUser,
+    budgets,
+    transactions,
+    formatCurrency,
+  } = useFinance();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const { setCurrentPage, logoutUser } = useFinance();
+  const [dismissedIds, setDismissedIds] = useState([]);
   const notifRef = useRef(null);
   const profileRef = useRef(null);
 
   const initials = user?.name
     ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : 'U';
+
+  // ─── Data-driven notifications ──────────────────────────────────
+  // Budget alerts come from GET /api/budgets/status (over limit → danger,
+  // ≥80% → warning); income entries come from the most recent transactions
+  // with type 'income'. Rebuilt automatically whenever loadData() refreshes.
+  const notifications = useMemo(() => {
+    const items = [];
+
+    for (const b of budgets || []) {
+      const limit = Number(b.limit) || 0;
+      const spent = Number(b.spent) || 0;
+      if (limit <= 0) continue;
+      const pct = Math.round((spent / limit) * 100);
+      if (pct >= 100) {
+        items.push({
+          id: `budget-over-${b.category}`,
+          text: `${b.category} budget ${pct}% used — over limit!`,
+          type: 'danger',
+          time: 'This month',
+        });
+      } else if (pct >= 80) {
+        items.push({
+          id: `budget-warn-${b.category}`,
+          text: `${b.category} budget at ${pct}% — approaching limit`,
+          type: 'warning',
+          time: 'This month',
+        });
+      }
+    }
+
+    const recentIncome = (transactions || [])
+      .filter((t) => t.type === 'income')
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 3);
+
+    for (const t of recentIncome) {
+      items.push({
+        id: `income-${t.id || t._id}`,
+        text: `${t.name || 'Income'} of ${formatCurrency(t.amount)} credited`,
+        type: 'income',
+        time: timeAgo(t.date),
+      });
+    }
+
+    return items;
+  }, [budgets, transactions, formatCurrency]);
+
+  const visibleNotifications = notifications.filter((n) => !dismissedIds.includes(n.id));
+  const unreadCount = visibleNotifications.length;
+
+  const markAllRead = () => {
+    setDismissedIds((prev) => [
+      ...prev,
+      ...visibleNotifications.map((n) => n.id),
+    ]);
+  };
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -73,30 +144,48 @@ const Topbar = ({ onMenuClick }) => {
           <button
             onClick={() => { setShowNotifications(!showNotifications); setShowProfile(false); }}
             className="relative p-2 text-text-muted hover:text-text-main hover:bg-navy-elevated rounded-lg transition-all duration-200"
-            aria-label={`Notifications (${NOTIFICATIONS.length} unread)`}
+            aria-label={`Notifications (${unreadCount} unread)`}
           >
             <Icon name="bell" size={20} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full" />
+            )}
           </button>
 
           {showNotifications && (
             <div className="absolute right-0 top-12 w-80 bg-navy-secondary border border-border rounded-xl shadow-2xl z-50 animate-scale-in overflow-hidden">
               <div className="px-4 py-3 border-b border-border flex items-center justify-between">
                 <span className="text-sm font-semibold text-text-main">Notifications</span>
-                <span className="text-xs text-brand-purple font-medium cursor-pointer hover:underline">Mark all read</span>
+                {unreadCount > 0 && (
+                  <span
+                    className="text-xs text-brand-purple font-medium cursor-pointer hover:underline"
+                    onClick={markAllRead}
+                  >
+                    Mark all read
+                  </span>
+                )}
               </div>
               <div className="max-h-72 overflow-y-auto">
-                {NOTIFICATIONS.map(n => (
-                  <div key={n.id} className="px-4 py-3 hover:bg-navy-elevated transition-colors border-b border-border/50 last:border-0">
-                    <div className="flex gap-3">
-                      <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.type === 'danger' ? 'bg-danger' : n.type === 'income' ? 'bg-income' : 'bg-warning'}`} />
-                      <div>
-                        <p className="text-sm text-text-main leading-snug">{n.text}</p>
-                        <p className="text-xs text-text-muted mt-1">{n.time}</p>
+                {visibleNotifications.length === 0 ? (
+                  <div className="px-4 py-8 text-center">
+                    <p className="text-sm text-text-muted">You're all caught up.</p>
+                    <p className="text-xs text-text-muted mt-1">
+                      Budget alerts and recent income will show here.
+                    </p>
+                  </div>
+                ) : (
+                  visibleNotifications.map((n) => (
+                    <div key={n.id} className="px-4 py-3 hover:bg-navy-elevated transition-colors border-b border-border/50 last:border-0">
+                      <div className="flex gap-3">
+                        <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.type === 'danger' ? 'bg-danger' : n.type === 'income' ? 'bg-income' : 'bg-warning'}`} />
+                        <div>
+                          <p className="text-sm text-text-main leading-snug">{n.text}</p>
+                          <p className="text-xs text-text-muted mt-1">{n.time}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           )}
